@@ -24,6 +24,16 @@ func Registrasi(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, models.Pesan{Status: false, Message: "Username telah dipakai"})
 		return
 	}
+	// Cek apakah kode verifikasi benar
+	if user.Kode == "" {
+		c.JSON(http.StatusInternalServerError, models.Pesan{Status: false, Message: "Masukkan kode verifikasi"})
+		return
+	}
+	dataverifikasi := utils.FindVerifikasi(mconn, "verifikasi", user)
+	if user.Kode != dataverifikasi.Kode {
+		c.JSON(http.StatusInternalServerError, models.Pesan{Status: false, Message: "Kode tidak sama"})
+		return
+	}
 	// Hash password
 	hash, hashErr := helpers.HashPassword(user.Password)
 	if hashErr != nil {

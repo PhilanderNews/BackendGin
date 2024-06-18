@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/PhilanderNews/BackendGin/helpers"
 	"github.com/PhilanderNews/BackendGin/middleware"
 	"github.com/PhilanderNews/BackendGin/models"
 	"github.com/PhilanderNews/BackendGin/utils"
@@ -27,15 +29,30 @@ func TambahKomentar(c *gin.Context) {
 	}
 	currentTime := time.Now().In(wib)
 	timeStringKomentar := currentTime.Format("January 2, 2006")
-	// Authorization
-	middleware.Authorization(c)
-	if c.IsAborted() {
-		return
-	}
-	role := c.GetString("role")
-	username := c.GetString("username")
 	// Cek role
+	header := c.Request.Header.Get("Authorization")
+	role := helpers.DecodeGetRole(os.Getenv("publickey"), header)
+	username := helpers.DecodeGetUsername(os.Getenv("publickey"), header)
 	if role != "admin" && role != "author" && role != "user" {
+		// Cek apakah id komentar telah ada
+		if komentar.ID == "" {
+			c.JSON(http.StatusInternalServerError, models.Pesan{Status: false, Message: "Parameter dari function ini adalah ID"})
+			return
+		}
+		if utils.IDKomentarExists(mconn, "komentar", komentar) {
+			c.JSON(http.StatusInternalServerError, models.Pesan{Status: false, Message: "ID telah ada"})
+			return
+		}
+		// Cek apakah id berita ada
+		if komentar.ID_berita == "" {
+			c.JSON(http.StatusInternalServerError, models.Pesan{Status: false, Message: "Parameter dari function ini adalah ID Berita"})
+			return
+		}
+		berita.ID = komentar.ID_berita
+		if !utils.IDBeritaExists(mconn, "berita", berita) {
+			c.JSON(http.StatusInternalServerError, models.Pesan{Status: false, Message: "Berita tidak ditemukan"})
+			return
+		}
 		komentar.Username = "Anonymous"
 		komentar.Tanggal = timeStringKomentar
 		utils.InsertKomentar(mconn, "komentar", komentar)

@@ -21,11 +21,12 @@ func main() {
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.ForwardedByClientIP = true
-	router.SetTrustedProxies([]string{"127.0.0.1"})
+	router.SetTrustedProxies([]string{"0.0.0.0"})
 
 	routes.UserRoutes(router)
 	routes.BeritaRoutes(router)
 	routes.KomentarRoutes(router)
+	routes.VerifikasiRoutes(router)
 
 	router.NoRoute(func(c *gin.Context) {
 		c.JSON(http.StatusNotFound, models.Pesan{Status: false, Message: "Page not found"})
