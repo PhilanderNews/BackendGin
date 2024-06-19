@@ -20,3 +20,8 @@ func VerifikasiExists(mconn *mongo.Database, collname string, dataverifikasi mod
 	filter := bson.M{"username": dataverifikasi.Username}
 	return helpers.DocExists[models.Verifikasi](mconn, collname, filter, dataverifikasi)
 }
+
+func VerifikasiUsernameExists(mconn *mongo.Database, collname string, dataverifikasi models.Verifikasi) bool {
+	filter := bson.M{"username": dataverifikasi.Username}
+	return helpers.DocExists[models.Verifikasi](mconn, collname, filter, dataverifikasi)
+}

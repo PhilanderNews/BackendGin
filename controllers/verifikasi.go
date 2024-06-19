@@ -33,14 +33,13 @@ func randomString(length int) (string, error) {
 func GenerateVerifikasi(c *gin.Context) {
 	mconn := utils.SetConnection("mongoenv", "philandernews")
 	var verifikasi models.Verifikasi
-	var user models.Users
 	err := c.BindJSON(&verifikasi)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, models.Pesan{Status: false, Message: "Error parsing application/json: " + err.Error()})
 		return
 	}
 	// Cek apakah username ada
-	if utils.UsernameExists(mconn, "users", user) {
+	if utils.VerifikasiUsernameExists(mconn, "users", verifikasi) {
 		c.JSON(http.StatusInternalServerError, models.Pesan{Status: false, Message: "Username telah dipakai"})
 		return
 	}
@@ -60,7 +59,7 @@ func GenerateVerifikasi(c *gin.Context) {
 	// Insert data user
 	utils.InsertVerifikasi(mconn, "verifikasi", verifikasi)
 	// Prepare and send a WhatsApp message with registration details
-	var nohp = user.NoWa
+	var nohp = verifikasi.NoWa
 
 	dt := &wa.TextMessage{
 		To:       nohp,
@@ -70,5 +69,5 @@ func GenerateVerifikasi(c *gin.Context) {
 
 	// Make an API call to send WhatsApp message
 	atapi.PostStructWithToken[atmessage.Response]("Token", os.Getenv("tokenwa"), dt, "https://api.wa.my.id/api/send/message/text")
-	c.JSON(http.StatusOK, models.Pesan{Status: true, Message: "Berikut kode verifikasi anda: " + verifikasi.Kode})
+	c.JSON(http.StatusOK, models.Pesan{Status: true, Message: "Kode anda telah dikirim ke wa"})
 }
