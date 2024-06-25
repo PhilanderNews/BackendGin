@@ -106,11 +106,10 @@ func EditBerita(c *gin.Context) {
 	if c.IsAborted() {
 		return
 	}
-	role := c.GetString("role")
 	name := c.GetString("name")
 	// Cek role
 	namapenulis := utils.FindBerita(mconn, "berita", berita)
-	if !(role == "admin" || name == namapenulis.Penulis) {
+	if !(name == namapenulis.Penulis) {
 		c.JSON(http.StatusUnauthorized, models.Pesan{Status: false, Message: "Anda tidak memiliki akses"})
 		c.Abort()
 		return
